@@ -18,7 +18,16 @@ import {
   ShieldCheck,
   Zap,
   Award,
-  AlertCircle
+  AlertCircle,
+  MessageCircle,
+  Share2,
+  Heart,
+  Send,
+  Navigation,
+  Camera,
+  Info,
+  Home,
+  ShoppingCart
 } from 'lucide-react';
 import { supabase, SupabaseUserProfile, SupabaseMenuItem, SupabaseOrder, SupabaseReservation } from './supabase';
 import { UserProfile, MenuItem, Order, Reservation, OrderItem, OrderType, PaymentMethod } from './types';
@@ -29,9 +38,12 @@ import { Dashboard as AdminDashboard } from './components/AdminDashboard';
 import { UserDashboard } from './components/UserDashboard';
 import { OrderTracking } from './components/OrderTracking';
 import { Story } from './components/Story';
-import { Reservations } from './components/Reservations';
+import { Location } from './components/Location';
+import { Reviews } from './components/Reviews';
+import { Gallery } from './components/Gallery';
 import { ChatBot } from './components/ChatBot';
 import { LoginModal } from './components/LoginModal';
+import { Footer } from './components/Footer';
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, errorInfo: string }> {
   constructor(props: { children: React.ReactNode }) {
@@ -228,11 +240,14 @@ export default function App() {
 
   const seedMenu = async () => {
     const initialMenu = [
-      { name: 'Frango Grelhado Peri-Peri', description: 'O nosso frango grelhado na brasa marinado no autêntico molho peri-peri moçambicano.', price: 850, category: 'Chicken', available: true, prep_time: 25 },
-      { name: 'The Papa Burger', description: 'Hambúrguer duplo de carne, cheddar derretido, cebolas caramelizadas e o nosso molho secreto gold.', price: 650, category: 'Burgers', available: true, prep_time: 15 },
-      { name: 'Pizza Manica Supreme', description: 'Carregada com frango picante, pimentos, cebolas e mozzarella extra.', price: 950, category: 'Pizzas', available: true, prep_time: 20 },
-      { name: 'Batatas Fritas Gold', description: 'Batatas cortadas à mão temperadas com a nossa mistura especial de especiarias.', price: 250, category: 'Sides', available: true, prep_time: 10 },
-      { name: 'Sumo de Maracujá Fresco', description: 'Sumo refrescante de maracujá local, servido gelado.', price: 150, category: 'Drinks', available: true, prep_time: 5 },
+      { name: 'Pizza A Fornalha', description: 'Nossa pizza assinatura com ingredientes frescos, massa artesanal e segredo da casa.', price: 650, category: 'Pizzas', available: true, prep_time: 25, image_url: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/c281f284-babb-46fa-bd1b-5008d92ad84e/0' },
+      { name: 'Frango Grelhado Especial', description: 'Frango suculento grelhado na brasa com nosso molho peri-peri artesanal.', price: 450, category: 'Chicken', available: true, prep_time: 30, image_url: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/c281f284-babb-46fa-bd1b-5008d92ad84e/2' },
+      { name: 'Hambúrguer Gourmet', description: 'Carne bovina premium, queijo derretido, alface crocante e molho especial no pão brioche.', price: 400, category: 'Burgers', available: true, prep_time: 15, image_url: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/40a0279c-091a-4284-9640-39403d516246/2' },
+      { name: 'Cocktail Tropical', description: 'Uma mistura refrescante de frutas tropicais e destilados premium.', price: 350, category: 'Drinks', available: true, prep_time: 10, image_url: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/c281f284-babb-46fa-bd1b-5008d92ad84e/3' },
+      { name: 'Pizza Margherita', description: 'Clássica pizza italiana com molho de tomate, mozzarella fresca e manjericão.', price: 500, category: 'Pizzas', available: true, prep_time: 20, image_url: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/40a0279c-091a-4284-9640-39403d516246/3' },
+      { name: 'Batata Frita Especial', description: 'Porção generosa de batatas crocantes temperadas com sal marinho e ervas.', price: 200, category: 'Sides', available: true, prep_time: 15, image_url: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/40a0279c-091a-4284-9640-39403d516246/4' },
+      { name: 'Salada da Casa', description: 'Mix de folhas verdes, tomate cereja, pepino e molho vinagrete.', price: 250, category: 'Sides', available: true, prep_time: 10, image_url: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/40a0279c-091a-4284-9640-39403d516246/5' },
+      { name: 'Sumo Natural', description: 'Sumo de fruta da época espremido na hora.', price: 150, category: 'Drinks', available: true, prep_time: 5, image_url: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/40a0279c-091a-4284-9640-39403d516246/6' },
     ];
 
     await supabase.from('menu').insert(initialMenu);
@@ -334,74 +349,72 @@ export default function App() {
                 exit={{ opacity: 0 }}
               >
                 {/* Hero Section */}
-                <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
+                <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
                   <div className="absolute inset-0 z-0">
                     <img 
-                      src="https://picsum.photos/seed/restaurant/1920/1080?blur=2" 
-                      alt="Principal" 
-                      className="w-full h-full object-cover opacity-40"
+                      src="https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/40a0279c-091a-4284-9640-39403d516246/0" 
+                      alt="A Fornalha" 
+                      className="w-full h-full object-cover opacity-40 scale-105 animate-slow-zoom"
                       referrerPolicy="no-referrer"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
                   </div>
 
-                  <div className="relative z-10 text-center px-4 max-w-4xl">
-                    <motion.div
-                      initial={{ y: 30, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <span className="text-gold-400 font-bold uppercase tracking-[0.3em] text-sm mb-6 block">Experiência de Fast Food Premium</span>
-                      <h1 className="text-6xl md:text-8xl font-serif font-bold mb-8 leading-tight tracking-tighter">
-                        Sinta a <span className="gold-shimmer italic">Excelência</span> de Chimoio
-                      </h1>
-                      <p className="text-xl text-white/70 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
-                        Do nosso frango grelhado na brasa às pizzas artesanais, cada mordida é uma jornada de sabores premium.
-                      </p>
-                      <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                  <div className="max-w-7xl mx-auto px-4 relative z-10 w-full">
+                    <div className="max-w-2xl space-y-8">
+                      <motion.div
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <div className="w-20 h-20 bg-gold-500 rounded-2xl flex items-center justify-center mb-8 shadow-2xl shadow-gold-500/20 rotate-3 group-hover:rotate-6 transition-transform">
+                          <ChefHat className="w-12 h-12 text-black" />
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gold-500/10 rounded-full border border-gold-500/20 mb-6">
+                          <Star className="w-4 h-4 text-gold-400 fill-current" />
+                          <span className="text-[10px] font-bold gold-text uppercase tracking-widest">⭐ 4.2 (322 críticas)</span>
+                        </div>
+                        <h1 className="text-6xl md:text-8xl font-serif font-bold leading-tight">
+                          A <span className="gold-shimmer italic">Fornalha</span>
+                        </h1>
+                        <p className="text-xl text-white/70 font-light leading-relaxed mt-6">
+                          A melhor pizza e grelhados de Chimoio. Uma experiência gastronómica moderna, elegante e acolhedora.
+                        </p>
+                      </motion.div>
+
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="flex flex-wrap gap-4"
+                      >
                         <button 
                           onClick={() => setCurrentView('menu')}
-                          className="gold-button flex items-center gap-2 group"
+                          className="gold-button flex items-center gap-2"
                         >
-                          Explorar Menu <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                          <Utensils className="w-5 h-5" /> Ver Menu
                         </button>
                         <button 
-                          onClick={() => setCurrentView('reservations')}
-                          className="px-8 py-4 rounded-full border border-white/20 hover:bg-white/5 transition-all font-semibold"
+                          onClick={() => setCurrentView('menu')}
+                          className="red-button flex items-center gap-2"
                         >
-                          Reservar uma Mesa
+                          <ShoppingCart className="w-5 h-5" /> Fazer Pedido
                         </button>
-                      </div>
-                    </motion.div>
-                  </div>
+                        <button 
+                          onClick={() => setCurrentView('location')}
+                          className="px-8 py-3 rounded-full border border-white/20 hover:bg-white/10 transition-all flex items-center gap-2"
+                        >
+                          <MapPin className="w-5 h-5" /> Localização
+                        </button>
+                        <button 
+                          onClick={() => setCurrentView('reviews')}
+                          className="px-8 py-3 rounded-full border border-white/20 hover:bg-white/10 transition-all flex items-center gap-2"
+                        >
+                          <Star className="w-5 h-5" /> Críticas
+                        </button>
+                      </motion.div>
 
-                  {/* Floating Stats */}
-                  <div className="absolute bottom-12 left-0 right-0 hidden md:block">
-                    <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-                      <div className="flex gap-12">
-                        <div className="flex items-center gap-3">
-                          <ShieldCheck className="text-gold-400 w-8 h-8" />
-                          <div>
-                            <p className="text-white font-bold">100% Higiene</p>
-                            <p className="text-white/40 text-xs">Qualidade Certificada</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Zap className="text-gold-400 w-8 h-8" />
-                          <div>
-                            <p className="text-white font-bold">Entrega Rápida</p>
-                            <p className="text-white/40 text-xs">Menos de 30 Min</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Award className="text-gold-400 w-8 h-8" />
-                          <div>
-                            <p className="text-white font-bold">Sabor Premium</p>
-                            <p className="text-white/40 text-xs">Premiado</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 pt-8">
                         <div className="flex -space-x-3">
                           {[1,2,3,4].map(i => (
                             <img key={i} src={`https://i.pravatar.cc/100?u=${i}`} className="w-10 h-10 rounded-full border-2 border-black" referrerPolicy="no-referrer" />
@@ -419,7 +432,7 @@ export default function App() {
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
                       <div>
                         <h2 className="text-4xl md:text-5xl font-serif font-bold gold-text mb-4">Nossas Especialidades</h2>
-                        <p className="text-white/50 max-w-md">Seleções cuidadosamente curadas que representam o coração do Papa's Chicken.</p>
+                        <p className="text-white/50 max-w-md">Seleções cuidadosamente curadas que representam o coração d'A Fornalha.</p>
                       </div>
                       <button 
                         onClick={() => setCurrentView('menu')}
@@ -431,9 +444,9 @@ export default function App() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                       {[
-                        { title: 'Frango Grelhado', icon: <Flame />, img: 'https://picsum.photos/seed/chicken/600/800', desc: 'Grelhado na brasa com perfeição com nossa mistura secreta de peri-peri.' },
-                        { title: 'Hambúrgueres de Assinatura', icon: <Burger />, img: 'https://picsum.photos/seed/burger/600/800', desc: 'Hambúrgueres de carne suculentos com coberturas premium e pães artesanais.' },
-                        { title: 'Pizzas Artesanais', icon: <Pizza />, img: 'https://picsum.photos/seed/pizza/600/800', desc: 'Massa fina assada na pedra com os ingredientes locais mais frescos.' },
+                        { title: 'Pizzas Artesanais', icon: <Pizza />, img: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/c281f284-babb-46fa-bd1b-5008d92ad84e/0', desc: 'Massa fina assada na pedra com os ingredientes locais mais frescos.' },
+                        { title: 'Grelhados & Carnes', icon: <Flame />, img: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/c281f284-babb-46fa-bd1b-5008d92ad84e/2', desc: 'Grelhados na brasa com perfeição com nossa mistura secreta de temperos.' },
+                        { title: 'Bebidas Selecionadas', icon: <Coffee />, img: 'https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/c281f284-babb-46fa-bd1b-5008d92ad84e/3', desc: 'Vinhos, refrigerantes e cocktails para acompanhar sua refeição.' },
                       ].map((cat, i) => (
                         <motion.div
                           key={cat.title}
@@ -458,47 +471,71 @@ export default function App() {
                   </div>
                 </section>
 
-                {/* Footer */}
-                <footer className="bg-black border-t border-white/10 pt-24 pb-12">
+                {/* Info Section */}
+                <section className="py-24">
                   <div className="max-w-7xl mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-24">
-                      <div className="col-span-1 md:col-span-1">
-                        <div className="flex items-center gap-2 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                      <div className="glass-card p-8 flex flex-col items-center text-center">
+                        <Clock className="w-10 h-10 text-gold-400 mb-4" />
+                        <h4 className="font-bold mb-2">Horário</h4>
+                        <p className="text-white/50 text-sm">09:00 - 22:00</p>
+                      </div>
+                      <div className="glass-card p-8 flex flex-col items-center text-center">
+                        <MapPin className="w-10 h-10 text-gold-400 mb-4" />
+                        <h4 className="font-bold mb-2">Localização</h4>
+                        <p className="text-white/50 text-sm">Chimoio, Moçambique</p>
+                      </div>
+                      <div className="glass-card p-8 flex flex-col items-center text-center">
+                        <Phone className="w-10 h-10 text-gold-400 mb-4" />
+                        <h4 className="font-bold mb-2">Contato</h4>
+                        <p className="text-white/50 text-sm">+258 86 767 4675</p>
+                      </div>
+                      <div className="glass-card p-8 flex flex-col items-center text-center">
+                        <Star className="w-10 h-10 text-gold-400 mb-4" />
+                        <h4 className="font-bold mb-2">Avaliação</h4>
+                        <p className="text-white/50 text-sm">4.2 (322 críticas)</p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Footer */}
+                <footer className="bg-black border-t border-white/5 pt-24 pb-12">
+                  <div className="max-w-7xl mx-auto px-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-2">
                           <div className="w-10 h-10 bg-gold-500 rounded-full flex items-center justify-center">
                             <ChefHat className="text-black w-6 h-6" />
                           </div>
-                          <span className="text-2xl font-serif font-bold gold-text">PAPA'S</span>
+                          <span className="text-2xl font-serif font-bold gold-text">A FORNALHA</span>
                         </div>
-                        <p className="text-white/40 text-sm leading-relaxed mb-8">
-                          Redefinindo o fast food em Chimoio com um toque de luxo e qualidade intransigente.
+                        <p className="text-white/40 text-sm leading-relaxed">
+                          A melhor pizza e grelhados de Chimoio. Uma experiência gastronómica moderna, elegante e acolhedora.
                         </p>
                         <div className="flex gap-4">
-                          <a href="#" className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-gold-500 hover:text-black transition-all">
-                            <Instagram className="w-5 h-5" />
-                          </a>
-                          <a href="#" className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-gold-500 hover:text-black transition-all">
-                            <Facebook className="w-5 h-5" />
-                          </a>
-                          <a href="#" className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-gold-500 hover:text-black transition-all">
-                            <Twitter className="w-5 h-5" />
-                          </a>
+                          {[Instagram, Facebook, Twitter].map((Icon, i) => (
+                            <a key={i} href="#" className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-gold-500 hover:text-black transition-all">
+                              <Icon className="w-5 h-5" />
+                            </a>
+                          ))}
                         </div>
                       </div>
 
                       <div>
                         <h4 className="text-gold-400 font-bold uppercase tracking-widest text-xs mb-8">Links Rápidos</h4>
                         <ul className="space-y-4 text-sm text-white/60">
-                          <li><button onClick={() => setCurrentView('menu')} className="hover:text-gold-400 transition-colors">Menu Digital</button></li>
-                          <li><button onClick={() => setCurrentView('reservations')} className="hover:text-gold-400 transition-colors">Reservar uma Mesa</button></li>
+                          <li><button onClick={() => setCurrentView('menu')} className="hover:text-gold-400 transition-colors">Nosso Menu</button></li>
+                          <li><button onClick={() => setCurrentView('location')} className="hover:text-gold-400 transition-colors">Localização</button></li>
                           <li><button onClick={() => setCurrentView('story')} className="hover:text-gold-400 transition-colors">Nossa História</button></li>
-                          <li><button className="hover:text-gold-400 transition-colors">Contate-nos</button></li>
+                          <li><button onClick={() => setCurrentView('reviews')} className="hover:text-gold-400 transition-colors">Críticas</button></li>
                         </ul>
                       </div>
 
                       <div>
-                        <h4 className="text-gold-400 font-bold uppercase tracking-widest text-xs mb-8">Informações de Contato</h4>
+                        <h4 className="text-gold-400 font-bold uppercase tracking-widest text-xs mb-8">Informações</h4>
                         <ul className="space-y-4 text-sm text-white/60">
-                          <li className="flex items-center gap-3"><MapPin className="w-4 h-4 text-gold-400" /> Chimoio, Manica, Moçambique</li>
+                          <li className="flex items-center gap-3"><MapPin className="w-4 h-4 text-gold-400" /> WF4J+RV, Chimoio</li>
                           <li className="flex items-center gap-3"><Phone className="w-4 h-4 text-gold-400" /> +258 86 767 4675</li>
                           <li className="flex items-center gap-3"><Clock className="w-4 h-4 text-gold-400" /> Seg - Dom: 09:00 - 22:00</li>
                         </ul>
@@ -520,8 +557,21 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* WhatsApp Support Button */}
+                    <div className="flex justify-center mb-12">
+                      <a 
+                        href="https://wa.me/258867674675" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 px-8 py-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-full font-bold shadow-lg shadow-green-500/20 transition-all hover:scale-105"
+                      >
+                        <MessageCircle className="w-6 h-6" />
+                        Suporte via WhatsApp
+                      </a>
+                    </div>
+
                     <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] text-white/20 uppercase tracking-[0.2em] font-bold">
-                      <p>© 2026 Papa's Chicken. Todos os Direitos Reservados.</p>
+                      <p>© 2026 A Fornalha. Todos os Direitos Reservados.</p>
                       <div className="flex gap-8">
                         <a href="#" className="hover:text-white transition-colors">Política de Privacidade</a>
                         <a href="#" className="hover:text-white transition-colors">Termos de Serviço</a>
@@ -543,20 +593,36 @@ export default function App() {
               </motion.div>
             )}
 
-            {currentView === 'reservations' && (
+            {currentView === 'location' && (
               <motion.div
-                key="reservations"
+                key="location"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
-                <Reservations 
-                  userProfile={profile} 
-                  onSuccess={() => {
-                    alert('Reserva solicitada! Confirmaremos em breve.');
-                    setCurrentView('home');
-                  }} 
-                />
+                <Location />
+              </motion.div>
+            )}
+
+            {currentView === 'reviews' && (
+              <motion.div
+                key="reviews"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <Reviews />
+              </motion.div>
+            )}
+
+            {currentView === 'gallery' && (
+              <motion.div
+                key="gallery"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <Gallery />
               </motion.div>
             )}
 
@@ -633,6 +699,8 @@ export default function App() {
           isOpen={isLoginModalOpen}
           onClose={() => setIsLoginModalOpen(false)}
         />
+
+        <Footer onViewChange={setCurrentView} />
 
         <ChatBot />
       </div>

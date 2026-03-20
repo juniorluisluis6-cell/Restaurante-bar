@@ -1,5 +1,5 @@
 {
-  "name": "Papa's Chicken",
-  "description": "Premium fast food experience in Chimoio. Order online, book reservations, and track your delivery in real-time.",
+  "name": "A Fornalha",
+  "description": "A melhor pizza e grelhados de Chimoio. Peça online, faça reservas e acompanhe o seu pedido em tempo real.",
   "requestFramePermissions": ["geolocation"]
 }

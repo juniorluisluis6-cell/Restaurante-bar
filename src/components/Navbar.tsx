@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, ChefHat, LayoutDashboard, MapPin } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, ChefHat, LayoutDashboard, MapPin, Star, Camera, Info, Home, Utensils } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../supabase';
 import { UserProfile } from '../types';
@@ -26,10 +26,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const navItems = [
-    { id: 'home', label: 'Início', icon: null },
-    { id: 'menu', label: 'Menu', icon: null },
-    { id: 'reservations', label: 'Reservas', icon: null },
-    { id: 'story', label: 'Nossa História', icon: null },
+    { id: 'home', label: 'Início', icon: <Home className="w-4 h-4" /> },
+    { id: 'menu', label: 'Menu', icon: <Utensils className="w-4 h-4" /> },
+    { id: 'location', label: 'Localização', icon: <MapPin className="w-4 h-4" /> },
+    { id: 'reviews', label: 'Críticas', icon: <Star className="w-4 h-4" /> },
+    { id: 'gallery', label: 'Galeria', icon: <Camera className="w-4 h-4" /> },
+    { id: 'story', label: 'História', icon: <Info className="w-4 h-4" /> },
   ];
 
   if (user) {
@@ -47,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <ChefHat className="text-black w-6 h-6" />
           </div>
           <span className="text-2xl font-serif font-bold tracking-tighter gold-text">
-            PAPA'S <span className="text-white">CHICKEN</span>
+            A <span className="text-white">FORNALHA</span>
           </span>
         </div>
 

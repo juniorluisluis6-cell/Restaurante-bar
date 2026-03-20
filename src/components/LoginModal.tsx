@@ -48,14 +48,30 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             }
           }
         });
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('already registered')) {
+            setError('Este e-mail já está cadastrado. Por favor, mude para "Faça Login" abaixo.');
+            return;
+          }
+          throw error;
+        }
         setError('Verifique seu e-mail para confirmar o cadastro!');
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('Email not confirmed')) {
+            setError('Sua conta ainda não foi ativada. Verifique seu e-mail ou desative a confirmação no painel do Supabase.');
+            return;
+          }
+          if (error.message.includes('Invalid login credentials')) {
+            setError('E-mail ou senha incorretos. Verifique os dados ou crie uma nova conta na aba "Cadastrar".');
+            return;
+          }
+          throw error;
+        }
         onClose();
       }
     } catch (err: any) {
@@ -93,7 +109,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   {mode === 'login' ? 'Bem-vindo de Volta' : 'Criar Conta'}
                 </h2>
                 <p className="text-xs text-white/40 mt-1 uppercase tracking-widest">
-                  {mode === 'login' ? 'Entre na sua conta Papa\'s Chicken' : 'Junte-se à nossa experiência gastronômica'}
+                  {mode === 'login' ? 'Entre na sua conta A Fornalha' : 'Junte-se à nossa experiência gastronômica'}
                 </p>
               </div>
               <button 

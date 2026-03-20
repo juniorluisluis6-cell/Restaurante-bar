@@ -28,7 +28,25 @@ export const Menu: React.FC<MenuProps> = ({ items, onAddToCart }) => {
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="text-center mb-12">
         <h2 className="text-4xl md:text-5xl font-serif font-bold mb-4 gold-text">O Nosso Menu Requintado</h2>
-        <p className="text-white/60 max-w-2xl mx-auto">Experimente os melhores sabores de Chimoio, elaborados com paixão e ingredientes premium.</p>
+        <div className="max-w-3xl mx-auto space-y-4 text-white/70 leading-relaxed">
+          <p>
+            No A Fornalha, o menu oferece uma variedade de pratos elaborados com simplicidade e sabor em mente. 
+            Espere encontrar uma seleção de refeições bem preparadas, desde pizzas recém-assadas até pratos 
+            substanciosos inspirados na culinária local. O menu equilibra favoritos conhecidos com toques criativos, 
+            destacando ingredientes de qualidade e preparações descomplicadas.
+          </p>
+          <p>
+            Entre as especialidades da casa, destacam-se as pizzas assadas em forno a lenha, muito elogiadas pela 
+            massa crocante e pelos recheios generosos. Além delas, os clientes encontrarão opções que harmonizam 
+            perfeitamente com uma seleção criteriosa de vinhos. O cardápio foi pensado para agradar a diversos 
+            paladares, garantindo uma experiência satisfatória, seja para um lanche rápido ou uma refeição completa.
+          </p>
+          <p className="text-sm italic text-white/50">
+            A apresentação é clara, embora algumas traduções possam exigir orientação, o que confere um toque local 
+            à experiência gastronômica. No geral, o menu do A Fornalha convida à exploração dos sabores moçambicanos 
+            num ambiente moderno.
+          </p>
+        </div>
       </div>
 
       {/* Categories */}

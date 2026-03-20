@@ -16,11 +16,23 @@
   --color-gold-800: #92400e;
   --color-gold-900: #78350f;
   --color-gold-950: #451a03;
+
+  --color-darkred-50: #fef2f2;
+  --color-darkred-100: #fee2e2;
+  --color-darkred-200: #fecaca;
+  --color-darkred-300: #fca5a5;
+  --color-darkred-400: #f87171;
+  --color-darkred-500: #ef4444;
+  --color-darkred-600: #dc2626;
+  --color-darkred-700: #b91c1c;
+  --color-darkred-800: #991b1b;
+  --color-darkred-900: #7f1d1d;
+  --color-darkred-950: #450a0a;
 }
 
 @layer base {
   body {
-    @apply bg-black text-white font-sans antialiased;
+    @apply bg-[#0a0a0a] text-white font-sans antialiased;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -29,7 +41,7 @@
 }
 
 .luxury-gradient {
-  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%);
 }
 
 .gold-text {
@@ -44,8 +56,12 @@
   @apply bg-gold-500 hover:bg-gold-600 text-black font-semibold px-6 py-3 rounded-full transition-all duration-300 shadow-lg shadow-gold-500/20 active:scale-95;
 }
 
+.red-button {
+  @apply bg-darkred-800 hover:bg-darkred-700 text-white font-semibold px-6 py-3 rounded-full transition-all duration-300 shadow-lg shadow-darkred-900/20 active:scale-95;
+}
+
 .glass-card {
-  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl;
 }
 
 .gold-shimmer {

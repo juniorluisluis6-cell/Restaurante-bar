@@ -47,7 +47,7 @@ export const Reservations: React.FC<ReservationsProps> = ({ userProfile, onSucce
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="text-center mb-12">
         <h2 className="text-4xl md:text-5xl font-serif font-bold mb-4 gold-text">Reserve Sua Mesa</h2>
-        <p className="text-white/60">Garanta o seu lugar para uma experiência gastronómica inesquecível no Papa's Chicken.</p>
+        <p className="text-white/60">Garanta o seu lugar para uma experiência gastronómica inesquecível no A Fornalha.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">

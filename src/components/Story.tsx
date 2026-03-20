@@ -8,7 +8,7 @@ export const Story: React.FC = () => {
       {/* Hero Section */}
       <section className="relative h-[60vh] rounded-3xl overflow-hidden mb-24">
         <img 
-          src="https://picsum.photos/seed/chef/1920/1080" 
+          src="https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/c281f284-babb-46fa-bd1b-5008d92ad84e/1" 
           alt="Nossa História" 
           className="w-full h-full object-cover opacity-60"
           referrerPolicy="no-referrer"
@@ -32,9 +32,9 @@ export const Story: React.FC = () => {
             <ChefHat className="w-4 h-4 text-gold-400" />
             <span className="text-[10px] font-bold gold-text uppercase tracking-widest">Os Nossos Começos Humildes</span>
           </div>
-          <h2 className="text-4xl font-serif font-bold">A <span className="gold-text">Tradição</span> do Papa's Chicken</h2>
+          <h2 className="text-4xl font-serif font-bold">A <span className="gold-text">Tradição</span> do A Fornalha</h2>
           <p className="text-white/60 leading-relaxed">
-            Fundado em 2015, o Papa's Chicken começou com uma missão simples: trazer os sabores autênticos do frango peri-peri moçambicano para o coração de Chimoio. O que começou como uma pequena banca cresceu para um restaurante amado, conhecido pela nossa qualidade intransigente e hospitalidade calorosa.
+            Fundado em 2015, o A Fornalha começou com uma missão simples: trazer os sabores autênticos da pizza e grelhados para o coração de Chimoio. O que começou como uma pequena banca cresceu para um restaurante amado, conhecido pela nossa qualidade intransigente e hospitalidade calorosa.
           </p>
           <p className="text-white/60 leading-relaxed">
             O nosso segredo reside nos detalhes. Utilizamos apenas os ingredientes locais mais frescos, e o nosso molho peri-peri de assinatura é feito a partir de uma receita de família passada de geração em geração. Cada frango é grelhado na brasa na perfeição, garantindo que cada dentada seja uma celebração de sabor.
@@ -53,7 +53,7 @@ export const Story: React.FC = () => {
         <div className="relative">
           <div className="aspect-[4/5] rounded-3xl overflow-hidden border border-white/10">
             <img 
-              src="https://picsum.photos/seed/kitchen/800/1000" 
+              src="https://ais-dev-o62llfdmw4j3tjxhf4cekv-136858374245.asia-east1.run.app/api/attachments/c281f284-babb-46fa-bd1b-5008d92ad84e/4" 
               alt="Cozinha" 
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
@@ -102,7 +102,7 @@ export const Story: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div>
             <h2 className="text-4xl font-serif font-bold gold-text mb-4">Conheça os Mestres</h2>
-            <p className="text-white/40 max-w-md">Os indivíduos talentosos por trás dos sabores do Papa's Chicken.</p>
+            <p className="text-white/40 max-w-md">Os indivíduos talentosos por trás dos sabores do A Fornalha.</p>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
