@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", serif;
+  --font-inter: "Inter", sans-serif;
   
   --color-gold-50: #fffbeb;
   --color-gold-100: #fef3c7;
@@ -17,31 +18,22 @@
   --color-gold-900: #78350f;
   --color-gold-950: #451a03;
 
-  --color-darkred-50: #fef2f2;
-  --color-darkred-100: #fee2e2;
-  --color-darkred-200: #fecaca;
-  --color-darkred-300: #fca5a5;
-  --color-darkred-400: #f87171;
-  --color-darkred-500: #ef4444;
-  --color-darkred-600: #dc2626;
-  --color-darkred-700: #b91c1c;
-  --color-darkred-800: #991b1b;
-  --color-darkred-900: #7f1d1d;
-  --color-darkred-950: #450a0a;
+  --color-matte-black: #0a0a0a;
+  --color-soft-white: #f5f5f5;
 }
 
 @layer base {
   body {
-    @apply bg-[#0a0a0a] text-white font-sans antialiased;
+    @apply bg-matte-black text-soft-white font-sans antialiased selection:bg-gold-500/30 selection:text-gold-200;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
+    @apply font-serif tracking-tight;
   }
 }
 
 .luxury-gradient {
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%);
+  background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
 }
 
 .gold-text {
@@ -53,23 +45,23 @@
 }
 
 .gold-button {
-  @apply bg-gold-500 hover:bg-gold-600 text-black font-semibold px-6 py-3 rounded-full transition-all duration-300 shadow-lg shadow-gold-500/20 active:scale-95;
+  @apply bg-gold-500 hover:bg-gold-600 text-black font-semibold px-8 py-4 rounded-full transition-all duration-500 shadow-lg shadow-gold-500/20 active:scale-95 uppercase tracking-widest text-xs;
 }
 
-.red-button {
-  @apply bg-darkred-800 hover:bg-darkred-700 text-white font-semibold px-6 py-3 rounded-full transition-all duration-300 shadow-lg shadow-darkred-900/20 active:scale-95;
+.outline-button {
+  @apply border border-gold-500/50 hover:border-gold-500 text-gold-400 hover:text-gold-300 font-semibold px-8 py-4 rounded-full transition-all duration-500 active:scale-95 uppercase tracking-widest text-xs;
 }
 
 .glass-card {
-  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl;
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl;
 }
 
 .gold-shimmer {
-  background: linear-gradient(90deg, #fbbf24 0%, #fef3c7 50%, #fbbf24 100%);
+  background: linear-gradient(90deg, #d4af37 0%, #f9f295 25%, #e6be8a 50%, #f9f295 75%, #d4af37 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: shimmer 3s linear infinite;
+  animation: shimmer 5s linear infinite;
 }
 
 @keyframes shimmer {
@@ -80,11 +72,11 @@
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-black;
+  @apply bg-matte-black;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -97,4 +89,16 @@
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.parallax-bg {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.text-stroke-gold {
+  -webkit-text-stroke: 1px rgba(251, 191, 36, 0.3);
+  color: transparent;
 }

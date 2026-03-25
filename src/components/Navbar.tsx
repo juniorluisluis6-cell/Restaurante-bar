@@ -1,141 +1,132 @@
-import React from 'react';
-import { ShoppingCart, User, LogOut, Menu as MenuIcon, X, ChefHat, LayoutDashboard, MapPin, Star, Camera, Info, Home, Utensils } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Camera, Menu, X, User, Instagram, Facebook, Twitter } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { supabase } from '../supabase';
-import { UserProfile } from '../types';
 
 interface NavbarProps {
-  user: any | null;
-  profile: UserProfile | null;
-  cartCount: number;
-  onCartClick: () => void;
+  user: any;
+  profile: any;
   onLoginClick: () => void;
   onViewChange: (view: string) => void;
   currentView: string;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ 
-  user, 
-  profile, 
-  cartCount, 
-  onCartClick, 
-  onLoginClick, 
-  onViewChange,
-  currentView
-}) => {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+export const Navbar: React.FC<NavbarProps> = ({ user, profile, onLoginClick, onViewChange, currentView }) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const navItems = [
-    { id: 'home', label: 'Início', icon: <Home className="w-4 h-4" /> },
-    { id: 'menu', label: 'Menu', icon: <Utensils className="w-4 h-4" /> },
-    { id: 'location', label: 'Localização', icon: <MapPin className="w-4 h-4" /> },
-    { id: 'reviews', label: 'Críticas', icon: <Star className="w-4 h-4" /> },
-    { id: 'gallery', label: 'Galeria', icon: <Camera className="w-4 h-4" /> },
-    { id: 'story', label: 'História', icon: <Info className="w-4 h-4" /> },
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const navLinks = [
+    { id: 'home', label: 'Início' },
+    { id: 'portfolio', label: 'Portfólio' },
+    { id: 'packages', label: 'Pacotes' },
+    { id: 'booking', label: 'Agendamento' },
   ];
 
-  if (user) {
-    navItems.push({ id: 'dashboard', label: profile?.role === 'customer' ? 'Minha Conta' : 'Painel', icon: <LayoutDashboard className="w-4 h-4" /> });
-  }
-
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-lg border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-        <div 
-          className="flex items-center gap-2 cursor-pointer" 
+    <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+      isScrolled ? 'bg-matte-black/80 backdrop-blur-xl border-b border-white/5 py-4' : 'bg-transparent py-8'
+    }`}>
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        {/* Logo */}
+        <button 
           onClick={() => onViewChange('home')}
+          className="flex items-center gap-3 group"
         >
-          <div className="w-10 h-10 bg-gold-500 rounded-full flex items-center justify-center shadow-lg shadow-gold-500/20">
-            <ChefHat className="text-black w-6 h-6" />
+          <div className="w-12 h-12 bg-gold-500 rounded-full flex items-center justify-center shadow-lg shadow-gold-500/20 group-hover:scale-110 transition-transform duration-500">
+            <Camera className="text-black w-6 h-6" />
           </div>
-          <span className="text-2xl font-serif font-bold tracking-tighter gold-text">
-            A <span className="text-white">FORNALHA</span>
-          </span>
-        </div>
+          <div className="flex flex-col items-start">
+            <span className="text-xl font-serif font-bold tracking-tighter gold-shimmer">ELICHA PHOTOGRAPH</span>
+            <span className="text-[8px] uppercase tracking-[0.3em] text-white/40 font-bold">O Inconfundível</span>
+          </div>
+        </button>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
-          {navItems.map(item => (
+        <div className="hidden md:flex items-center gap-12">
+          {navLinks.map(link => (
             <button
-              key={item.id}
-              onClick={() => onViewChange(item.id)}
-              className={`text-sm font-medium transition-colors hover:text-gold-400 flex items-center gap-1 ${
-                currentView === item.id ? 'text-gold-400' : 'text-white/70'
+              key={link.id}
+              onClick={() => onViewChange(link.id)}
+              className={`text-[10px] uppercase tracking-[0.2em] font-bold transition-all duration-300 relative group ${
+                currentView === link.id ? 'text-gold-400' : 'text-white/60 hover:text-white'
               }`}
             >
-              {item.icon}
-              {item.label}
+              {link.label}
+              <span className={`absolute -bottom-2 left-0 h-[1px] bg-gold-400 transition-all duration-500 ${
+                currentView === link.id ? 'w-full' : 'w-0 group-hover:w-full'
+              }`} />
             </button>
           ))}
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* Actions */}
+        <div className="flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-4 border-r border-white/10 pr-6 mr-2">
+            {[Instagram, Facebook, Twitter].map((Icon, i) => (
+              <a key={i} href="#" className="text-white/40 hover:text-gold-400 transition-colors">
+                <Icon className="w-4 h-4" />
+              </a>
+            ))}
+          </div>
+          
           <button 
-            onClick={onCartClick}
-            className="relative p-2 hover:bg-white/10 rounded-full transition-colors"
+            onClick={user ? () => onViewChange('dashboard') : onLoginClick}
+            className="flex items-center gap-3 group"
           >
-            <ShoppingCart className="w-6 h-6" />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-gold-500 text-black text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-black">
-                {cartCount}
-              </span>
-            )}
+            <div className="text-right hidden sm:block">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 group-hover:text-gold-400 transition-colors">
+                {user ? 'Minha Área' : 'Acesso VIP'}
+              </p>
+              <p className="text-xs font-serif font-bold">
+                {user ? (profile?.name || 'Cliente') : 'Entrar'}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:border-gold-500/50 transition-colors overflow-hidden">
+              {user ? (
+                <img src={`https://i.pravatar.cc/100?u=${user.id}`} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-4 h-4 text-gold-400" />
+              )}
+            </div>
           </button>
 
-          {user ? (
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:block text-right">
-                <p className="text-xs font-medium text-white">{profile?.name || user.user_metadata?.full_name}</p>
-                <p className="text-[10px] text-gold-400 uppercase tracking-widest">{profile?.role === 'admin' ? 'Administrador' : profile?.role === 'staff' ? 'Funcionário' : 'Cliente'}</p>
-              </div>
-              <button 
-                onClick={() => supabase.auth.signOut()}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors text-red-400"
-                title="Sair"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
-          ) : (
-            <button 
-              onClick={onLoginClick}
-              className="gold-button !py-2 !px-4 text-sm"
-            >
-              Entrar
-            </button>
-          )}
-
+          {/* Mobile Menu Toggle */}
           <button 
-            className="md:hidden p-2"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden text-white"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            {isMenuOpen ? <X /> : <MenuIcon />}
+            {isMobileMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
       <AnimatePresence>
-        {isMenuOpen && (
+        {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="md:hidden bg-black border-b border-white/10 p-4"
+            className="absolute top-full left-0 right-0 bg-matte-black/95 backdrop-blur-2xl border-b border-white/5 p-8 md:hidden"
           >
-            <div className="flex flex-col gap-4">
-              {navItems.map(item => (
+            <div className="flex flex-col gap-6">
+              {navLinks.map(link => (
                 <button
-                  key={item.id}
+                  key={link.id}
                   onClick={() => {
-                    onViewChange(item.id);
-                    setIsMenuOpen(false);
+                    onViewChange(link.id);
+                    setIsMobileMenuOpen(false);
                   }}
-                  className={`text-lg font-serif ${
-                    currentView === item.id ? 'text-gold-400' : 'text-white'
+                  className={`text-sm uppercase tracking-[0.2em] font-bold ${
+                    currentView === link.id ? 'text-gold-400' : 'text-white/60'
                   }`}
                 >
-                  {item.label}
+                  {link.label}
                 </button>
               ))}
             </div>

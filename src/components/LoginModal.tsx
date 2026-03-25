@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, Chrome, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { supabase } from '../supabase';
+import { auth, db } from '../firebase';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider,
+  updateProfile
+} from 'firebase/auth';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -19,15 +27,29 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-      if (error) throw error;
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Create profile if it doesn't exist
+      const profileRef = doc(db, 'users', user.uid);
+      const profileSnap = await getDoc(profileRef);
+      
+      if (!profileSnap.exists()) {
+        await setDoc(profileRef, {
+          uid: user.uid,
+          name: user.displayName || email.split('@')[0],
+          email: user.email,
+          role: 'customer',
+          avatar: user.photoURL,
+          createdAt: serverTimestamp()
+        });
+      }
+      onClose();
     } catch (err: any) {
-      setError(err.message || 'Erro ao entrar com Google. Verifique se o provedor está ativado no Supabase.');
+      console.error('Google login error:', err);
+      setError(err.message || 'Erro ao entrar com Google.');
+    } finally {
       setLoading(false);
     }
   };
@@ -39,43 +61,38 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
     try {
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: email.split('@')[0],
-            }
-          }
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        const user = result.user;
+
+        await updateProfile(user, {
+          displayName: email.split('@')[0]
         });
-        if (error) {
-          if (error.message.includes('already registered')) {
-            setError('Este e-mail já está cadastrado. Por favor, mude para "Faça Login" abaixo.');
-            return;
-          }
-          throw error;
-        }
-        setError('Verifique seu e-mail para confirmar o cadastro!');
+
+        // Create profile in Firestore
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          name: email.split('@')[0],
+          email: user.email,
+          role: 'customer',
+          createdAt: serverTimestamp()
+        });
+        
+        onClose();
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) {
-          if (error.message.includes('Email not confirmed')) {
-            setError('Sua conta ainda não foi ativada. Verifique seu e-mail ou desative a confirmação no painel do Supabase.');
-            return;
-          }
-          if (error.message.includes('Invalid login credentials')) {
-            setError('E-mail ou senha incorretos. Verifique os dados ou crie uma nova conta na aba "Cadastrar".');
-            return;
-          }
-          throw error;
-        }
+        await signInWithEmailAndPassword(auth, email, password);
         onClose();
       }
     } catch (err: any) {
-      setError(err.message || 'Erro na autenticação.');
+      console.error('Email auth error:', err);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Este e-mail já está cadastrado. Por favor, faça login.');
+      } else if (err.code === 'auth/invalid-credential') {
+        setError('E-mail ou senha incorretos.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('A senha deve ter pelo menos 6 caracteres.');
+      } else {
+        setError(err.message || 'Erro na autenticação.');
+      }
     } finally {
       setLoading(false);
     }
@@ -109,7 +126,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   {mode === 'login' ? 'Bem-vindo de Volta' : 'Criar Conta'}
                 </h2>
                 <p className="text-xs text-white/40 mt-1 uppercase tracking-widest">
-                  {mode === 'login' ? 'Entre na sua conta A Fornalha' : 'Junte-se à nossa experiência gastronômica'}
+                  {mode === 'login' ? 'Entre na sua conta Elicha Photograph' : 'Junte-se à nossa experiência inconfundível'}
                 </p>
               </div>
               <button 

@@ -1,472 +1,316 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
-  BarChart3, 
+  LayoutDashboard, 
   Users, 
-  ShoppingBag, 
   Calendar, 
-  CheckCircle2, 
+  Image as ImageIcon, 
+  Settings, 
+  LogOut, 
+  TrendingUp, 
+  DollarSign, 
   Clock, 
-  AlertCircle,
-  Truck,
-  ChefHat,
+  CheckCircle,
+  MoreVertical,
+  Search,
   Plus,
-  Trash2,
-  Edit2
+  Filter,
+  Download,
+  Loader2
 } from 'lucide-react';
-import { Order, Reservation, MenuItem, UserProfile } from '../types';
-import { supabase } from '../supabase';
+import { db } from '../firebase';
+import { collection, onSnapshot, query, orderBy, updateDoc, doc } from 'firebase/firestore';
 
-interface DashboardProps {
-  orders: Order[];
-  reservations: Reservation[];
-  menuItems: MenuItem[];
-  profile: UserProfile | null;
-}
+export const AdminDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export const Dashboard: React.FC<DashboardProps> = ({ orders, reservations, menuItems, profile }) => {
-  const [activeTab, setActiveTab] = React.useState<'orders' | 'reservations' | 'menu' | 'stats'>('orders');
-  const [showAddModal, setShowAddModal] = React.useState(false);
-  const [newItem, setNewItem] = React.useState<Partial<MenuItem>>({
-    name: '',
-    price: 0,
-    category: 'Chicken',
-    description: '',
-    available: true
-  });
+  useEffect(() => {
+    const qBookings = query(collection(db, 'bookings'), orderBy('createdAt', 'desc'));
+    const unsubBookings = onSnapshot(qBookings, (snapshot) => {
+      const fetchedBookings = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setBookings(fetchedBookings);
+    });
 
-  const handleAddItem = async (e: React.FormEvent) => {
-    e.preventDefault();
+    const qUsers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    const unsubUsers = onSnapshot(qUsers, (snapshot) => {
+      const fetchedUsers = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setUsers(fetchedUsers);
+      setLoading(false);
+    }, (error) => {
+      console.error('Admin fetch error:', error);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubBookings();
+      unsubUsers();
+    };
+  }, []);
+
+  const handleUpdateStatus = async (bookingId: string, newStatus: string) => {
     try {
-      await supabase.from('menu').insert([{
-        name: newItem.name,
-        price: newItem.price,
-        category: newItem.category,
-        description: newItem.description,
-        available: newItem.available,
-        image_url: `https://picsum.photos/seed/${newItem.name}/400/300`
-      }]);
-      setShowAddModal(false);
-      setNewItem({ name: '', price: 0, category: 'Chicken', description: '', available: true });
+      await updateDoc(doc(db, 'bookings', bookingId), {
+        status: newStatus
+      });
     } catch (error) {
-      console.error('Failed to add item', error);
+      console.error('Update status error:', error);
     }
   };
 
-  const updateOrderStatus = async (orderId: string, newStatus: Order['status'], customerId?: string, total?: number) => {
+  const handleUpdateRole = async (userId: string, newRole: string) => {
     try {
-      await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
-      
-      // Award loyalty points if delivered (1 point per 10 MT)
-      if (newStatus === 'delivered' && customerId && total) {
-        const pointsEarned = Math.floor(total / 10);
-        const { data: user } = await supabase.from('users').select('points').eq('id', customerId).single();
-        if (user) {
-          await supabase.from('users').update({ points: (user.points || 0) + pointsEarned }).eq('id', customerId);
-        }
-      }
+      await updateDoc(doc(db, 'users', userId), {
+        role: newRole
+      });
     } catch (error) {
-      console.error('Failed to update order status', error);
-    }
-  };
-
-  const updateReservationStatus = async (resId: string, newStatus: Reservation['status']) => {
-    try {
-      await supabase.from('reservations').update({ status: newStatus }).eq('id', resId);
-    } catch (error) {
-      console.error('Failed to update reservation status', error);
-    }
-  };
-
-  const toggleMenuAvailability = async (itemId: string, currentStatus: boolean) => {
-    try {
-      await supabase.from('menu').update({ available: !currentStatus }).eq('id', itemId);
-    } catch (error) {
-      console.error('Failed to toggle availability', error);
-    }
-  };
-
-  const deleteMenuItem = async (itemId: string) => {
-    if (!window.confirm('Tem certeza de que deseja excluir este item do menu?')) return;
-    try {
-      await supabase.from('menu').delete().eq('id', itemId);
-    } catch (error) {
-      console.error('Failed to delete item', error);
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'received': return 'recebido';
-      case 'preparing': return 'preparando';
-      case 'ready': return 'pronto';
-      case 'delivering': return 'entregando';
-      case 'delivered': return 'entregue';
-      case 'cancelled': return 'cancelado';
-      case 'pending': return 'pendente';
-      case 'confirmed': return 'confirmado';
-      default: return status;
+      console.error('Update role error:', error);
+      alert('Erro ao atualizar cargo: ' + (error as Error).message);
     }
   };
 
   const stats = [
-    { label: 'Pedidos Totais', value: orders.length, icon: <ShoppingBag className="w-5 h-5 text-blue-400" /> },
-    { label: 'Reservas Pendentes', value: reservations.filter(r => r.status === 'pending').length, icon: <Calendar className="w-5 h-5 text-gold-400" /> },
-    { label: 'Pedidos Ativos', value: orders.filter(o => ['received', 'preparing', 'ready', 'delivering'].includes(o.status)).length, icon: <Clock className="w-5 h-5 text-emerald-400" /> },
-    { label: 'Receita Diária', value: `MT ${orders.filter(o => o.status === 'delivered').reduce((sum, o) => sum + o.total, 0).toLocaleString()}`, icon: <BarChart3 className="w-5 h-5 text-purple-400" /> },
+    { label: 'Receita Total', value: 'MT 450.000', icon: <DollarSign className="w-5 h-5" />, trend: '+12%' },
+    { label: 'Novos Clientes', value: users.length.toString(), icon: <Users className="w-5 h-5" />, trend: '+5%' },
+    { label: 'Sessões Agendadas', value: bookings.length.toString(), icon: <Calendar className="w-5 h-5" />, trend: '+2%' },
+    { label: 'Fotos Entregues', value: '5.2k', icon: <ImageIcon className="w-5 h-5" />, trend: '+18%' }
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-        <div>
-          <h2 className="text-4xl font-serif font-bold gold-text mb-2 tracking-tight">Painel de Gestão</h2>
-          <p className="text-white/50 text-sm">Bem-vindo de volta, {profile?.name}. Aqui está o que está acontecendo hoje.</p>
-        </div>
-        
-        <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
-          {[
-            { id: 'orders', label: 'Pedidos', icon: <ShoppingBag className="w-4 h-4" /> },
-            { id: 'reservations', label: 'Reservas', icon: <Calendar className="w-4 h-4" /> },
-            { id: 'menu', label: 'Menu', icon: <ChefHat className="w-4 h-4" /> },
-            { id: 'stats', label: 'Análises', icon: <BarChart3 className="w-4 h-4" /> },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeTab === tab.id ? 'bg-gold-500 text-black shadow-lg shadow-gold-500/20' : 'text-white/40 hover:text-white'
-              }`}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {stats.map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="glass-card p-6 border-white/5"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-white/5 rounded-lg border border-white/10">
-                {stat.icon}
-              </div>
-              <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Hoje</span>
+    <section className="min-h-screen bg-matte-black pt-24 pb-12">
+      <div className="max-w-[1600px] mx-auto px-6 h-full flex gap-8">
+        {/* Admin Sidebar */}
+        <div className="w-72 glass-card p-8 flex flex-col h-[calc(100vh-120px)] sticky top-28">
+          <div className="flex items-center gap-4 mb-12">
+            <div className="w-12 h-12 bg-gold-500 rounded-xl flex items-center justify-center shadow-lg shadow-gold-500/20">
+              <LayoutDashboard className="text-black w-6 h-6" />
             </div>
-            <p className="text-2xl font-serif font-bold mb-1">{stat.value}</p>
-            <p className="text-xs text-white/40 font-medium">{stat.label}</p>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Content Area */}
-      <div className="glass-card overflow-hidden border-white/5">
-        {activeTab === 'orders' && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-white/5 border-b border-white/10">
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold">ID do Pedido</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold">Itens</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold">Total</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold">Tipo</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold">Status</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(order => (
-                  <tr key={order.id} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="px-6 py-4">
-                      <p className="text-xs font-mono text-white/60">#{order.id.slice(0, 8)}</p>
-                      <p className="text-[10px] text-white/30">{new Date(order.createdAt).toLocaleTimeString()}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1">
-                        {order.items.map((item, i) => (
-                          <span key={i} className="text-[10px] bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                            {item.quantity}x {item.name}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold gold-text">MT {order.total.toLocaleString()}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1 text-[10px] font-bold uppercase">
-                        {order.type === 'delivery' ? <Truck className="w-3 h-3" /> : <ShoppingBag className="w-3 h-3" />}
-                        {order.type === 'delivery' ? 'Entrega' : 'Levantamento'}
-                      </div>
-                      {order.paymentMethod === 'mpesa' && (
-                        <p className="text-[10px] text-gold-400 font-mono mt-1">M-Pesa: {order.paymentPhone}</p>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full border ${
-                        order.status === 'delivered' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                        order.status === 'cancelled' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                        'bg-gold-500/10 text-gold-400 border-gold-500/20'
-                      }`}>
-                        {getStatusLabel(order.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {order.status === 'received' && (
-                          <button 
-                            onClick={() => updateOrderStatus(order.id, 'preparing')}
-                            className="p-2 hover:bg-white/10 rounded-lg text-blue-400 transition-colors"
-                            title="Começar Preparação"
-                          >
-                            <ChefHat className="w-4 h-4" />
-                          </button>
-                        )}
-                        {order.status === 'preparing' && (
-                          <button 
-                            onClick={() => updateOrderStatus(order.id, 'ready')}
-                            className="p-2 hover:bg-white/10 rounded-lg text-gold-400 transition-colors"
-                            title="Marcar como Pronto"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                          </button>
-                        )}
-                        {order.status === 'ready' && order.type === 'delivery' && (
-                          <button 
-                            onClick={() => updateOrderStatus(order.id, 'delivering')}
-                            className="p-2 hover:bg-white/10 rounded-lg text-purple-400 transition-colors"
-                            title="Começar Entrega"
-                          >
-                            <Truck className="w-4 h-4" />
-                          </button>
-                        )}
-                        {(order.status === 'ready' && order.type === 'pickup') || order.status === 'delivering' ? (
-                          <button 
-                            onClick={() => updateOrderStatus(order.id, 'delivered', order.customerId, order.total)}
-                            className="p-2 hover:bg-white/10 rounded-lg text-emerald-400 transition-colors"
-                            title="Marcar como Entregue"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                          </button>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div>
+              <h3 className="text-lg font-serif font-bold">Admin Panel</h3>
+              <p className="text-[9px] uppercase tracking-widest text-gold-400 font-bold">HC Fotógrafo</p>
+            </div>
           </div>
-        )}
 
-        {activeTab === 'reservations' && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-white/5 border-b border-white/10">
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold">Convidado</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold">Data e Hora</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold">Convidados</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold">Status</th>
-                  <th className="px-6 py-4 text-[10px] uppercase tracking-widest text-white/40 font-bold text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {reservations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(res => (
-                  <tr key={res.id} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="px-6 py-4">
-                      <p className="text-sm font-bold">{res.customerName}</p>
-                      <p className="text-[10px] text-white/30">ID: {res.customerId.slice(0, 8)}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm">{res.date}</p>
-                      <p className="text-xs text-gold-400">{res.time}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1">
-                        <Users className="w-3 h-3 text-white/40" />
-                        <span className="text-sm font-bold">{res.guests}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full border ${
-                        res.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                        res.status === 'cancelled' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                        'bg-gold-500/10 text-gold-400 border-gold-500/20'
-                      }`}>
-                        {getStatusLabel(res.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {res.status === 'pending' && (
-                          <>
-                            <button 
-                              onClick={() => updateReservationStatus(res.id, 'confirmed')}
-                              className="p-2 hover:bg-white/10 rounded-lg text-emerald-400 transition-colors"
-                              title="Confirmar"
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                            </button>
-                            <button 
-                              onClick={() => updateReservationStatus(res.id, 'cancelled')}
-                              className="p-2 hover:bg-white/10 rounded-lg text-red-400 transition-colors"
-                              title="Cancelar"
-                            >
-                              <AlertCircle className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {activeTab === 'menu' && (
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-serif font-bold">Inventário do Menu</h3>
-              <button 
-                onClick={() => setShowAddModal(true)}
-                className="gold-button !py-2 !px-4 text-xs flex items-center gap-2"
+          <nav className="space-y-4 flex-grow">
+            {[
+              { id: 'overview', label: 'Visão Geral', icon: <TrendingUp className="w-4 h-4" /> },
+              { id: 'bookings', label: 'Agendamentos', icon: <Calendar className="w-4 h-4" /> },
+              { id: 'clients', label: 'Clientes', icon: <Users className="w-4 h-4" /> },
+              { id: 'portfolio', label: 'Gerenciar Portfólio', icon: <ImageIcon className="w-4 h-4" /> },
+              { id: 'settings', label: 'Configurações', icon: <Settings className="w-4 h-4" /> }
+            ].map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl transition-all duration-300 ${
+                  activeTab === item.id ? 'bg-gold-500 text-black shadow-lg shadow-gold-500/20' : 'text-white/40 hover:bg-white/5'
+                }`}
               >
-                <Plus className="w-4 h-4" /> Adicionar Item
+                {item.icon}
+                <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          <button className="flex items-center gap-4 px-6 py-4 rounded-xl text-red-400 hover:bg-red-400/10 transition-all duration-300 mt-auto">
+            <LogOut className="w-4 h-4" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Sair do Painel</span>
+          </button>
+        </div>
+
+        {/* Admin Content */}
+        <div className="flex-grow space-y-8">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h2 className="text-4xl font-serif font-bold gold-shimmer">Dashboard Administrativo</h2>
+              <p className="text-white/40 font-light text-sm">Bem-vindo de volta, HC Fotógrafo.</p>
+            </div>
+            <div className="flex gap-4">
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-gold-400 transition-colors" />
+                <input 
+                  type="text" 
+                  placeholder="Pesquisar..."
+                  className="bg-white/5 border border-white/10 rounded-xl pl-12 pr-6 py-3 text-sm focus:border-gold-500 outline-none transition-all w-64"
+                />
+              </div>
+              <button className="gold-button flex items-center gap-3 py-3 px-6 text-[10px]">
+                <Plus className="w-4 h-4" /> Novo Agendamento
               </button>
             </div>
+          </div>
 
-            {showAddModal && (
-              <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="glass-card p-8 border-gold-400/20 max-w-md w-full"
-                >
-                  <h3 className="text-2xl font-serif font-bold gold-text mb-6">Adicionar Novo Item</h3>
-                  <form onSubmit={handleAddItem} className="space-y-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Nome</label>
-                      <input 
-                        type="text" 
-                        required
-                        value={newItem.name}
-                        onChange={e => setNewItem({...newItem, name: e.target.value})}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:border-gold-400 outline-none"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Preço (MT)</label>
-                        <input 
-                          type="number" 
-                          required
-                          value={newItem.price}
-                          onChange={e => setNewItem({...newItem, price: Number(e.target.value)})}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:border-gold-400 outline-none"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Categoria</label>
-                        <select 
-                          value={newItem.category}
-                          onChange={e => setNewItem({...newItem, category: e.target.value as any})}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:border-gold-400 outline-none"
-                        >
-                          <option value="Chicken">Frango</option>
-                          <option value="Burgers">Hambúrgueres</option>
-                          <option value="Pizzas">Pizzas</option>
-                          <option value="Sides">Acompanhamentos</option>
-                          <option value="Drinks">Bebidas</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Descrição</label>
-                      <textarea 
-                        value={newItem.description}
-                        onChange={e => setNewItem({...newItem, description: e.target.value})}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:border-gold-400 outline-none h-24 resize-none"
-                      />
-                    </div>
-                    <div className="flex gap-4 pt-4">
-                      <button 
-                        type="button"
-                        onClick={() => setShowAddModal(false)}
-                        className="flex-1 px-6 py-3 rounded-full border border-white/10 text-sm font-bold hover:bg-white/5 transition-colors"
-                      >
-                        Cancelar
-                      </button>
-                      <button 
-                        type="submit"
-                        className="flex-1 gold-button !py-3"
-                      >
-                        Criar Item
-                      </button>
-                    </div>
-                  </form>
-                </motion.div>
-              </div>
-            )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {menuItems.map(item => (
-                <div key={item.id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex gap-4">
-                  <div className="w-16 h-16 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
-                    <img src={item.imageUrl || `https://picsum.photos/seed/${item.name}/100/100`} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="glass-card p-8 group hover:border-gold-500/20 transition-all duration-500"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/5 group-hover:border-gold-500/20 transition-colors">
+                    <div className="text-gold-400">{stat.icon}</div>
                   </div>
-                  <div className="flex-grow">
-                    <div className="flex justify-between items-start">
-                      <h4 className="text-sm font-bold">{item.name}</h4>
-                      <div className="flex gap-1">
-                        <button 
-                          onClick={() => toggleMenuAvailability(item.id, item.available)}
-                          className={`p-1 hover:bg-white/10 rounded transition-colors ${item.available ? 'text-emerald-400' : 'text-red-400'}`}
-                          title={item.available ? 'Marcar como Esgotado' : 'Marcar em Stock'}
-                        >
-                          <CheckCircle2 className="w-3 h-3" />
-                        </button>
-                        <button 
-                          onClick={() => deleteMenuItem(item.id)}
-                          className="p-1 hover:bg-white/10 rounded text-white/40 hover:text-red-400 transition-colors"
-                          title="Excluir Item"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-white/40 mb-2">{item.category}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold gold-text">MT {item.price.toLocaleString()}</span>
-                      <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded border ${
-                        item.available ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
-                      }`}>
-                        {item.available ? 'Em Stock' : 'Esgotado'}
-                      </span>
-                    </div>
-                  </div>
+                  <span className="text-xs font-bold text-green-400 bg-green-400/10 px-3 py-1 rounded-full">{stat.trend}</span>
                 </div>
-              ))}
-            </div>
+                <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-2">{stat.label}</p>
+                <h4 className="text-3xl font-serif font-bold">{stat.value}</h4>
+              </motion.div>
+            ))}
           </div>
-        )}
 
-        {activeTab === 'stats' && (
-          <div className="p-12 text-center space-y-4">
-            <BarChart3 className="w-16 h-16 text-gold-400/20 mx-auto" />
-            <h3 className="text-xl font-serif font-bold">Análises Avançadas</h3>
-            <p className="text-white/40 max-w-md mx-auto text-sm">Relatórios de vendas detalhados, tendências de clientes e previsão de inventário estarão disponíveis na próxima atualização.</p>
-          </div>
-        )}
+          {/* Recent Bookings Table */}
+          {activeTab === 'overview' || activeTab === 'bookings' ? (
+            <div className="glass-card p-10">
+              <div className="flex items-center justify-between mb-10">
+                <h3 className="text-2xl font-serif font-bold">
+                  {activeTab === 'overview' ? 'Agendamentos Recentes' : 'Todos os Agendamentos'}
+                </h3>
+                <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-gold-400 transition-colors">
+                  <Filter className="w-4 h-4" /> Filtrar Lista
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left border-b border-white/5">
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">ID</th>
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">Cliente</th>
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">Tipo</th>
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">Data</th>
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">Status</th>
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">Valor</th>
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {(activeTab === 'overview' ? bookings.slice(0, 5) : bookings).map((booking, i) => (
+                      <tr key={i} className="group hover:bg-white/5 transition-colors">
+                        <td className="py-6 text-xs font-bold text-white/40">#{booking.id.slice(0, 6)}</td>
+                        <td className="py-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-[10px] font-bold text-gold-400">
+                              {booking.type?.charAt(0).toUpperCase() || 'S'}
+                            </div>
+                            <span className="text-sm font-bold">{booking.type || 'Sessão'}</span>
+                          </div>
+                        </td>
+                        <td className="py-6 text-sm text-white/60">{booking.type}</td>
+                        <td className="py-6 text-sm text-white/60">{booking.date}</td>
+                        <td className="py-6">
+                          <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-[9px] font-bold uppercase tracking-widest ${
+                            booking.status === 'confirmed' ? 'bg-green-400/10 border-green-400/20 text-green-400' : 
+                            booking.status === 'pending' ? 'bg-yellow-400/10 border-yellow-400/20 text-yellow-400' :
+                            'bg-red-400/10 border-red-400/20 text-red-400'
+                          }`}>
+                            {booking.status === 'confirmed' ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                            {booking.status}
+                          </div>
+                        </td>
+                        <td className="py-6 text-sm font-bold gold-text">MT {booking.budget || '---'}</td>
+                        <td className="py-6">
+                          <div className="flex gap-2">
+                            {booking.status === 'pending' && (
+                              <button 
+                                onClick={() => handleUpdateStatus(booking.id, 'confirmed')}
+                                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-green-400/10 text-green-400 transition-colors"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
+                              <MoreVertical className="w-4 h-4 text-white/20" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : activeTab === 'clients' ? (
+            <div className="glass-card p-10">
+              <div className="flex items-center justify-between mb-10">
+                <h3 className="text-2xl font-serif font-bold">Gestão de Clientes</h3>
+                <div className="flex gap-4">
+                  <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-gold-400 transition-colors">
+                    <Download className="w-4 h-4" /> Exportar CSV
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left border-b border-white/5">
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">Cliente</th>
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">Email</th>
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">Cargo</th>
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold">Registro</th>
+                      <th className="pb-6 text-[10px] uppercase tracking-widest text-white/20 font-bold text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {users.map((user, i) => (
+                      <tr key={i} className="group hover:bg-white/5 transition-colors">
+                        <td className="py-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-xs font-bold text-gold-400">
+                              {user.name?.charAt(0).toUpperCase() || 'U'}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold">{user.name || 'Sem Nome'}</p>
+                              <p className="text-[10px] text-white/40 uppercase tracking-widest">ID: {user.id.slice(0, 8)}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-6 text-sm text-white/60">{user.email}</td>
+                        <td className="py-6">
+                          <select 
+                            value={user.role || 'client'}
+                            onChange={(e) => handleUpdateRole(user.id, e.target.value)}
+                            className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gold-400 outline-none focus:border-gold-500 transition-colors"
+                          >
+                            <option value="client" className="bg-matte-black">Cliente</option>
+                            <option value="admin" className="bg-matte-black">Admin</option>
+                          </select>
+                        </td>
+                        <td className="py-6 text-sm text-white/60">
+                          {user.createdAt?.toDate ? user.createdAt.toDate().toLocaleDateString() : '---'}
+                        </td>
+                        <td className="py-6 text-right">
+                          <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors ml-auto">
+                            <MoreVertical className="w-4 h-4 text-white/20" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="glass-card p-20 text-center">
+              <h3 className="text-2xl font-serif font-bold mb-4">Em Desenvolvimento</h3>
+              <p className="text-white/40 text-sm">Esta funcionalidade estará disponível em breve.</p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </section>
   );
 };

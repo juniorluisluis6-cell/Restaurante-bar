@@ -1,5 +1,5 @@
 {
-  "name": "A Fornalha",
-  "description": "A melhor pizza e grelhados de Chimoio. Peça online, faça reservas e acompanhe o seu pedido em tempo real.",
-  "requestFramePermissions": ["geolocation"]
+  "name": "Elicha Photograph O Inconfundível",
+  "description": "Agência de fotografia premium em Chimoio, Manica. Capturando momentos únicos com excelência e sofisticação por HC Fotógrafo.",
+  "requestFramePermissions": ["camera", "microphone"]
 }

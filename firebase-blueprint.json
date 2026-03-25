@@ -8,80 +8,74 @@
         "uid": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["customer", "admin"] },
+        "avatar": { "type": "string" },
         "phone": { "type": "string" },
-        "role": { "type": "string", "enum": ["customer", "staff", "admin"] },
-        "points": { "type": "number" },
+        "bio": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "name", "email", "role"]
     },
-    "MenuItem": {
-      "title": "MenuItem",
-      "description": "A food or drink item on the menu",
+    "PortfolioPhoto": {
+      "title": "PortfolioPhoto",
+      "description": "A photo in the portfolio",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "url": { "type": "string" },
+        "category": { "type": "string", "enum": ["Casamentos", "Eventos", "Ensaios", "Moda", "Corporativo"] },
+        "title": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["url", "category", "title"]
+    },
+    "Package": {
+      "title": "Package",
+      "description": "A photography package",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "price": { "type": "string" },
+        "features": { "type": "array", "items": { "type": "string" } },
+        "icon": { "type": "string" },
+        "popular": { "type": "boolean" }
+      },
+      "required": ["title", "price", "features"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "A photography session booking request",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerId": { "type": "string" },
+        "type": { "type": "string" },
+        "people": { "type": "number" },
+        "location": { "type": "string" },
+        "date": { "type": "string" },
+        "duration": { "type": "number" },
+        "coverage": { "type": "string" },
+        "urgency": { "type": "string" },
+        "budget": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerId", "type", "people", "location", "date", "status", "createdAt"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "A client review",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
-        "description": { "type": "string" },
-        "price": { "type": "number" },
-        "category": { "type": "string", "enum": ["Chicken", "Burgers", "Pizzas", "Sides", "Drinks"] },
-        "imageUrl": { "type": "string" },
-        "prepTime": { "type": "number" },
-        "available": { "type": "boolean" }
+        "role": { "type": "string" },
+        "content": { "type": "string" },
+        "rating": { "type": "number" },
+        "avatar": { "type": "string" }
       },
-      "required": ["name", "price", "category", "available"]
-    },
-    "Order": {
-      "title": "Order",
-      "description": "A customer order",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "customerId": { "type": "string" },
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "itemId": { "type": "string" },
-              "name": { "type": "string" },
-              "quantity": { "type": "number" },
-              "price": { "type": "number" },
-              "notes": { "type": "string" }
-            }
-          }
-        },
-        "total": { "type": "number" },
-        "status": { "type": "string", "enum": ["received", "preparing", "ready", "delivering", "delivered", "cancelled"] },
-        "type": { "type": "string", "enum": ["delivery", "pickup"] },
-        "address": { "type": "string" },
-        "location": {
-          "type": "object",
-          "properties": {
-            "lat": { "type": "number" },
-            "lng": { "type": "number" }
-          }
-        },
-        "paymentMethod": { "type": "string", "enum": ["cash", "mpesa"] },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["customerId", "items", "total", "status", "type", "paymentMethod", "createdAt"]
-    },
-    "Reservation": {
-      "title": "Reservation",
-      "description": "A table reservation",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "customerId": { "type": "string" },
-        "customerName": { "type": "string" },
-        "date": { "type": "string" },
-        "time": { "type": "string" },
-        "guests": { "type": "number" },
-        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["customerId", "date", "time", "guests", "status", "createdAt"]
+      "required": ["name", "content", "rating"]
     }
   },
   "firestore": {
@@ -89,17 +83,21 @@
       "schema": "User",
       "description": "User profiles"
     },
-    "/menu": {
-      "schema": "MenuItem",
-      "description": "Restaurant menu items"
+    "/portfolio": {
+      "schema": "PortfolioPhoto",
+      "description": "Portfolio photos"
     },
-    "/orders": {
-      "schema": "Order",
-      "description": "Customer orders"
+    "/packages": {
+      "schema": "Package",
+      "description": "Photography packages"
     },
-    "/reservations": {
-      "schema": "Reservation",
-      "description": "Table reservations"
+    "/bookings": {
+      "schema": "Booking",
+      "description": "Session bookings"
+    },
+    "/reviews": {
+      "schema": "Review",
+      "description": "Client reviews"
     }
   }
 }
